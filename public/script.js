@@ -3,6 +3,24 @@ const playButton = document.querySelector("#playButton");
 const textInput = document.querySelector("textArea");
 const languageSelect = document.querySelector("#languageSelect");
 
+//Speech Recognition
+
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const rec = new SpeechRecognition();
+rec.leng = "sr-RS";
+rec.continuous = true;
+
+rec.onresult = function (e) {
+  for (let i = e.resultIndex; i < e.results.length; i++) {
+    const script = e.results[i][0].transcript.toLowerCase().trim();
+    console.log(script);
+    textInput.value = script;
+  }
+};
+rec.start();
+
 //Array od supported languages
 const languages = [
   { code: "en", name: "English" },
@@ -11,6 +29,7 @@ const languages = [
   { code: "de", name: "German" },
   { code: "it", name: "Italian" },
   { code: "ja", name: "Japanese" },
+  { code: "sr", name: "Serbian" },
   { code: "zn-CN", name: "Chinese (Simplified)" },
 ];
 
@@ -47,4 +66,5 @@ playButton.addEventListener("click", () => {
   const selectedVoice = voices[voiceSelect.value];
   if (selectedVoice) utterance.voice = selectedVoice;
   speechSynthesis.speak(utterance);
+  // console.log(textInput.value);
 });
