@@ -59,12 +59,61 @@ function loadVoices() {
 speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
 
+//translate Text with severless function
+async function translateText(text, targetLeng) {
+  try {
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text,
+        target: targetLeng,
+      }),
+    });
+    //Provera,ako nesto nije uredu...
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}:${await response.text()}`);
+    }
+    //ako je sve ok
+    const data = await response.json();
+    return data.data.translations[0].translatedText; //prvo data je const,drugo data(podaci) iz response.json()
+  } catch (error) {
+    console.error("Translation Error: ", error);
+    alert("Failed to translate text");
+    return text;
+  }
+}
+
+//Text to speech
+function playText(text, voiceIndex) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (voices[voiceIndex]) {
+    utterance.voice = voices[voiceIndex];
+  }
+  speechSynthesis.speak(utterance);
+}
+
 //Play TTS
 
-playButton.addEventListener("click", () => {
-  const utterance = new SpeechSynthesisUtterance(textInput.value);
-  const selectedVoice = voices[voiceSelect.value];
-  if (selectedVoice) utterance.voice = selectedVoice;
-  speechSynthesis.speak(utterance);
-  // console.log(textInput.value);
+playButton.addEventListener("click", async () => {
+  const text = textInput.value.trim();
+  const targetLang = languageSelect.value;
+  const selectedVoiceIndex = voiceSelect.value;
+
+  if (!text) {
+    alert("Please enter some text!");
+    return;
+  }
+
+  try {
+    // Translate text
+    const translatedText = await translateText(text, targetLang);
+    // Play text
+    playText(translatedText, selectedVoiceIndex);
+  } catch (error) {
+    console.error("Error during processing: ", error);
+    alert("An error occurred");
+  }
 });
