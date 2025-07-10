@@ -8,21 +8,21 @@ if (process.env.NODE_ENV !== "production") {
     dotenv.config();
   })();
 }
-export default async function handler(request, response) {
+export default async function handler(request, res) {
   if (request.method !== "POST") {
-    return response.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
   const { text, target } = request.body;
 
   if (!text || !target) {
-    return response.status(400).json({ error: "Missing text or language" });
+    return res.status(400).json({ error: "Missing text or language" });
   }
 
   const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
   const apiUrl = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
 
   try {
-    const response = await fetch(apiUrl, {
+    const apiResponse = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,15 +34,15 @@ export default async function handler(request, response) {
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return response.status(response.status).json({ error: errorText });
+    if (!apiResponse.ok) {
+      const errorText = await apiResponse.text();
+      return res.status(apiResponse.status).json({ error: errorText });
     }
 
-    const data = await response.json();
-    response.status(200).json(data);
+    const data = await apiResponse.json();
+    res.status(200).json(data);
   } catch (error) {
     console.error("Error in API call: ", error);
-    response.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
